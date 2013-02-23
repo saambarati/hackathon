@@ -65,17 +65,17 @@ app.get('/', function(req, res) {
 });
 
 //TODO, set up oauth callback ourselves
-app.get('/:service/:endpoint?', function(req, res) {
+app.get('/:service/:endpoint', function(req, res) {
   var token = req.session.accessToken
     , reqUrl
     , resText = ''
     , service = req.params.service
-    , endpoint = req.params.endpoint || ''
+    , endpoint = req.params.endpoint
 
   reqUrl = {
       protocol : 'https'
     , host : 'api.singly.com'
-    , pathname : '/services/' + service + (endpoint ? '/' + endpoint : '')
+    , pathname : (sprintf('/services/%s/%s', service, endpoint))
     , query : {access_token : token}
   }
   reqUrl = url.format(reqUrl)
@@ -89,8 +89,4 @@ app.get('/:service/:endpoint?', function(req, res) {
 app.listen(port)
 
 console.log(sprintf('Listening at %s using API endpoint %s.', hostBaseUrl, apiBaseUrl))
-
-
-
-
 
