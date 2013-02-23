@@ -9,7 +9,9 @@
       "sprintf": "*",
       "express-partials": "*",
       "express-singly": "*",
-      "request":"*"
+      "request":"*",
+      "rethinkdb": "*",
+      "socketio": "*"
    },
    "engines": {
      "node": "0.8.x",
