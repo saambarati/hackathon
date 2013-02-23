@@ -14,13 +14,15 @@ var querystring = require('querystring');
 var request = require('request');
 var sprintf = require('sprintf').sprintf;
 var partials = require('express-partials');
+var config = require('./config')
+var util = require('util')
 
 // The port that this express app will listen on
-var port = process.env.PORT || 8081;
+var port = config.port
 
 // Your client ID and secret from http://dev.singly.com/apps
-var clientId = process.env.SINGLY_CLIENT_ID;
-var clientSecret = process.env.SINGLY_CLIENT_SECRET;
+var clientId = config.clientId
+var clientSecret = config.clientSecret
 
 var hostBaseUrl = (process.env.HOST || 'http://localhost:' + port);
 var apiBaseUrl = process.env.SINGLY_API_HOST || 'https://api.singly.com';
@@ -29,11 +31,10 @@ var apiBaseUrl = process.env.SINGLY_API_HOST || 'https://api.singly.com';
 var app = express();
 
 // Require and initialize the singly module
-var expressSingly = require('express-singly')(app, clientId, clientSecret,
-  hostBaseUrl, hostBaseUrl + '/callback');
+var expressSingly = require('express-singly')(app, clientId, clientSecret, hostBaseUrl, hostBaseUrl + '/callback');
 
 // Pick a secret to secure your session storage
-var sessionSecret = '42';
+var sessionSecret = '5132';
 
 // Setup for the express web framework
 app.configure(function() {
@@ -67,6 +68,30 @@ app.get('/', function(req, res) {
     session: req.session
   });
 });
+app.get('/rdio', function(req, res) {
+  //get some
+  var token = req.session.accessToken
+    , url = 'https://api.singly.com/services/rdio/activity?access_token=' + token
+    , resText = ''
+
+  res.setHeader('Content-Type', 'text/html')
+
+  if (!token) return res.end('no token')
+
+  request.get({url : url, json : true}, handleReq)
+  function handleReq(err, response, body) {
+    console.log('body -> ' + body)
+    console.log('typeof body -> ' + typeof body)
+
+    if (err) return res.end('error in request to singly API')
+
+    body.forEach(function (obj) {
+      resText += '<p>' + JSON.stringify(obj) + '</p>'
+    })
+
+    res.end(resText || 'nothing returned from singly')
+  }
+})
 
 app.listen(port);
 
