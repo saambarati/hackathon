@@ -9,32 +9,27 @@
 //
 // $ node app
 
-var express = require('express');
-var querystring = require('querystring');
-var request = require('request');
-var sprintf = require('sprintf').sprintf;
-var partials = require('express-partials');
-var config = require('./config')
-var util = require('util')
-
+var express = require('express')
+  , querystring = require('querystring')
+  , request = require('request')
+  , sprintf = require('sprintf').sprintf
+  , partials = require('express-partials')
+  , config = require('./config')
+  , util = require('util')
+  , url = require('url')
 // The port that this express app will listen on
-var port = config.port
-
+  , port = config.port
 // Your client ID and secret from http://dev.singly.com/apps
-var clientId = config.clientId
-var clientSecret = config.clientSecret
-
-var hostBaseUrl = (process.env.HOST || 'http://localhost:' + port)
-var apiBaseUrl = process.env.SINGLY_API_HOST || 'https://api.singly.com'
-
+  , clientId = config.clientId
+  , clientSecret = config.clientSecret
+  , hostBaseUrl = (process.env.HOST || 'http://localhost:' + port)
+  , apiBaseUrl = process.env.SINGLY_API_HOST || 'https://api.singly.com'
 // Create an HTTP server
-var app = express();
-
+  , app = express()
 // Require and initialize the singly module
-var expressSingly = require('express-singly')(app, clientId, clientSecret, hostBaseUrl, hostBaseUrl + '/callback')
-
+  , expressSingly = require('express-singly')(app, clientId, clientSecret, hostBaseUrl, hostBaseUrl + '/callback')
 // Pick a secret to secure your session storage
-var sessionSecret = '5132-dfsu812341jhfa:;ad;-231'
+  , sessionSecret = '5132-dfsu812341jhfa:;ad;-231'
 
 // Setup for the express web framework
 app.configure(function() {
@@ -70,29 +65,25 @@ app.get('/', function(req, res) {
 });
 
 //TODO, set up oauth callback ourselves
-app.get('/:service/:endpoint', function(req, res) {
+app.get('/:service/:endpoint?', function(req, res) {
   var token = req.session.accessToken
-    , url = 'https://api.singly.com/services/'+ req.params.service + '/' + req.params.endpoint + '?access_token=' + token
+    , reqUrl
     , resText = ''
+    , service = req.params.service
+    , endpoint = req.params.endpoint || ''
+
+  reqUrl = {
+      protocol : 'https'
+    , host : 'api.singly.com'
+    , pathname : '/services/' + service + (endpoint ? '/' + endpoint : '')
+    , query : {access_token : token}
+  }
+  reqUrl = url.format(reqUrl)
+  console.log('url -> ' + reqUrl)
 
   res.setHeader('Content-Type', 'application/json')
-
   if (!token) return res.end(JSON.stringify([{error:'no token'}]))
-
-  request.get({url : url, json : true}).pipe(res)
-  //request.get({url : url, json : true}, handleReq)
-  //function handleReq(err, response, body) {
-  //  console.log('body -> ' + body)
-  //  console.log('typeof body -> ' + typeof body)
-
-  //  if (err) return res.end('error in request to singly API')
-
-  //  body.forEach(function (obj) {
-  //    resText += '<p>' + JSON.stringify(obj) + '</p>'
-  //  })
-
-  //  res.end(resText || 'nothing returned from singly')
-  //}
+  request.get({url : reqUrl, json : true}).pipe(res)
 })
 
 app.listen(port)
