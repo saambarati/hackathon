@@ -24,17 +24,17 @@ var port = config.port
 var clientId = config.clientId
 var clientSecret = config.clientSecret
 
-var hostBaseUrl = (process.env.HOST || 'http://localhost:' + port);
-var apiBaseUrl = process.env.SINGLY_API_HOST || 'https://api.singly.com';
+var hostBaseUrl = (process.env.HOST || 'http://localhost:' + port)
+var apiBaseUrl = process.env.SINGLY_API_HOST || 'https://api.singly.com'
 
 // Create an HTTP server
 var app = express();
 
 // Require and initialize the singly module
-var expressSingly = require('express-singly')(app, clientId, clientSecret, hostBaseUrl, hostBaseUrl + '/callback');
+var expressSingly = require('express-singly')(app, clientId, clientSecret, hostBaseUrl, hostBaseUrl + '/callback')
 
 // Pick a secret to secure your session storage
-var sessionSecret = '5132';
+var sessionSecret = '5132-dfsu812341jhfa:;ad;-231'
 
 // Setup for the express web framework
 app.configure(function() {
@@ -68,34 +68,36 @@ app.get('/', function(req, res) {
     session: req.session
   });
 });
-app.get('/rdio', function(req, res) {
-  //get some
+
+//TODO, set up oauth callback ourselves
+app.get('/:service/:endpoint', function(req, res) {
   var token = req.session.accessToken
-    , url = 'https://api.singly.com/services/rdio/activity?access_token=' + token
+    , url = 'https://api.singly.com/services/'+ req.params.service + '/' + req.params.endpoint + '?access_token=' + token
     , resText = ''
 
-  res.setHeader('Content-Type', 'text/html')
+  res.setHeader('Content-Type', 'application/json')
 
-  if (!token) return res.end('no token')
+  if (!token) return res.end(JSON.stringify([{error:'no token'}]))
 
-  request.get({url : url, json : true}, handleReq)
-  function handleReq(err, response, body) {
-    console.log('body -> ' + body)
-    console.log('typeof body -> ' + typeof body)
+  request.get({url : url, json : true}).pipe(res)
+  //request.get({url : url, json : true}, handleReq)
+  //function handleReq(err, response, body) {
+  //  console.log('body -> ' + body)
+  //  console.log('typeof body -> ' + typeof body)
 
-    if (err) return res.end('error in request to singly API')
+  //  if (err) return res.end('error in request to singly API')
 
-    body.forEach(function (obj) {
-      resText += '<p>' + JSON.stringify(obj) + '</p>'
-    })
+  //  body.forEach(function (obj) {
+  //    resText += '<p>' + JSON.stringify(obj) + '</p>'
+  //  })
 
-    res.end(resText || 'nothing returned from singly')
-  }
+  //  res.end(resText || 'nothing returned from singly')
+  //}
 })
 
-app.listen(port);
+app.listen(port)
 
-console.log(sprintf('Listening at %s using API endpoint %s.', hostBaseUrl, apiBaseUrl));
+console.log(sprintf('Listening at %s using API endpoint %s.', hostBaseUrl, apiBaseUrl))
 
 
 
