@@ -7,11 +7,10 @@
       "querystring": "*",
       "request": "2.9.203",
       "sprintf": "*",
-      "express-partials": "*",
       "express-singly": "*",
       "request":"*",
       "rethinkdb": "*",
-      "socketio": "*"
+      "socket.io": "*"
    },
    "engines": {
      "node": "0.8.x",
